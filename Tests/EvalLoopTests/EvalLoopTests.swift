@@ -23,6 +23,8 @@ final class GoldenSetTests: XCTestCase {
         XCTAssertEqual(golden.cases(in: .dev).count, 19)
         XCTAssertEqual(golden.cases(in: .holdout).map(\.id), ["t06", "t07", "t14", "t15", "t17", "t23", "t24"])
         XCTAssertNil(golden.split(of: "missing"))
+        XCTAssertEqual(GoldenSet.split(forID: "t01", holdoutPercent: -5), .dev)
+        XCTAssertEqual(GoldenSet.split(forID: "t01", holdoutPercent: 500), .holdout)
     }
 
     func testValidation() {
@@ -92,6 +94,8 @@ final class RuleCheckTests: XCTestCase {
             XCTAssertEqual(check.verdict, .patchOnly, rule.id)
             XCTAssertEqual(Set(check.fixedTargets), rule.writtenFor, rule.id)
             XCTAssertTrue(check.fixedHoldout.isEmpty, rule.id)
+            XCTAssertTrue(check.fixedDevOthers.isEmpty, rule.id)
+            XCTAssertTrue(check.broken.isEmpty, rule.id)
         }
     }
 
@@ -129,6 +133,13 @@ final class GateAndAlarmTests: XCTestCase {
     func testGateRejectsPatchesAndPromotesTheGeneralFix() {
         let gate = SampleScenario.gate
         let v1 = harness.run(SampleScenario.v1)
+        XCTAssertEqual(gate.decide(base: v1, candidate: harness.run(SampleScenario.v2),
+                                   candidateRules: SampleScenario.v2.rules, golden: harness.golden),
+                       .reject([.rulesWithoutHoldoutGain(added: 2)]))
+        // Gated against v2 (as the demo app does), v3 adds two more rules with no holdout gain.
+        XCTAssertEqual(gate.decide(base: harness.run(SampleScenario.v2), candidate: harness.run(SampleScenario.v3),
+                                   candidateRules: SampleScenario.v3.rules, golden: harness.golden),
+                       .reject([.rulesWithoutHoldoutGain(added: 2)]))
         XCTAssertEqual(gate.decide(base: v1, candidate: harness.run(SampleScenario.v3),
                                    candidateRules: SampleScenario.v3.rules, golden: harness.golden),
                        .reject([.rulesWithoutHoldoutGain(added: 4)]))
