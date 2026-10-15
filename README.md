@@ -2,9 +2,9 @@
 
 A small Swift package that shows the part of an AI feature a lead actually owns: the loop that tells you whether a change helped. It ships a golden set with a hash-fixed dev/holdout split, a side-by-side regression report, a "does this rule generalise?" check, a redundancy audit for hand-written fix-up rules, a promotion gate, and an alarm for the moment a project slides from evaluation into rule-patching.
 
-Article: (added after publish)
+Article: [Build the Eval Loop Before You Tune: Four Fix-Up Rules, Zero Holdout Gain](https://medium.com/@er.rajatlakhina/build-the-eval-loop-before-you-tune-four-fix-up-rules-zero-holdout-gain-4cf3745e4b4c) (Medium)
 
-![The demo app's Runs screen on an iOS Simulator: five pipeline versions with dev and holdout pass bars, a rule-patching alarm on v3 and gate decisions per version](Demo/Screenshots/runs.png)
+![The demo app's Runs screen on an iOS Simulator: five pipeline versions with dev and holdout pass bars, a rule-patching alarm on v3 and gate decisions for v2 to v5](Demo/Screenshots/runs.png)
 
 ## What the demo shows
 
@@ -12,7 +12,7 @@ The model under test is a deterministic stand-in for an on-device categoriser of
 
 26 golden cases, split by an FNV-1a hash of each case ID (33% target): **19 dev, 7 holdout**.
 
-| Version | Rules | Dev | Holdout | Gate (vs previous) |
+| Version | Rules | Dev | Holdout | Gate (vs previous version) |
 |---|---|---|---|---|
 | v1 baseline | 0 | 12/19 | 3/7 | — |
 | v2 +2 patches | 2 | 14/19 | 3/7 | reject: rules without holdout gain |
@@ -70,7 +70,8 @@ No other setup: `Demo.xcodeproj` consumes the package through a local package re
 ## Verification status
 
 - `swift build -Xswiftc -warnings-as-errors` and `swift test` (17 tests, 0 failures) pass on Swift 6.1.2, Linux x86_64.
-- The Simulator run happens in CI: `.github/workflows/ci.yml` builds `Demo.xcodeproj` on a macOS runner, installs and launches the app on an iPhone Simulator, checks it is still running after 8 seconds, and commits the screenshots in `Demo/Screenshots/`. See the Actions tab for the run.
+- `swift build -Xswiftc -warnings-as-errors` and `swift test` also pass in GitHub Actions on `macos-15`.
+- The Simulator run happens in CI: `.github/workflows/ci.yml` builds `Demo.xcodeproj` on a macOS runner, installs and launches the app on an iPhone Simulator, checks it is still running after 8 seconds, and commits the screenshots in `Demo/Screenshots/` (`runs.png`, `rules.png`, `cases.png`, all real captures from that job). See the Actions tab for the run.
 
 ## Source
 
