@@ -70,8 +70,10 @@ public struct GoldenSet: Sendable {
     }
 
     /// Deterministic assignment. Exposed so the property can be tested directly.
+    /// Out-of-range percentages are clamped to 0...100 rather than trapping.
     public static func split(forID id: String, holdoutPercent: Int) -> Split {
-        fnv1a(id) % 100 < UInt64(holdoutPercent) ? .holdout : .dev
+        let percent = UInt64(min(100, max(0, holdoutPercent)))
+        return fnv1a(id) % 100 < percent ? .holdout : .dev
     }
 
     static func fnv1a(_ string: String) -> UInt64 {

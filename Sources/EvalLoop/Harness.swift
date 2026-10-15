@@ -52,8 +52,8 @@ public struct Harness: Sendable {
     public func run(_ version: PipelineVersion) -> EvalRun {
         var results: [CaseResult] = []
         results.reserveCapacity(golden.cases.count)
-        for golden in golden.cases {
-            var input = golden.input
+        for goldenCase in golden.cases {
+            var input = goldenCase.input
             var fired: [String] = []
             for rule in version.rules {
                 if case .rewriteInput(let rewrite) = rule.action,
@@ -65,16 +65,16 @@ public struct Harness: Sendable {
             var output = model.respond(to: input)
             for rule in version.rules {
                 if case .overrideOutput(let override) = rule.action,
-                   let replaced = override(golden.input), replaced != output {
+                   let replaced = override(goldenCase.input), replaced != output {
                     output = replaced
                     fired.append(rule.id)
                 }
             }
             results.append(CaseResult(
-                caseID: golden.id,
-                split: self.golden.split(of: golden.id) ?? .dev,
+                caseID: goldenCase.id,
+                split: golden.split(of: goldenCase.id) ?? .dev,
                 output: output,
-                passed: output == golden.expected,
+                passed: output == goldenCase.expected,
                 firedRules: fired
             ))
         }
